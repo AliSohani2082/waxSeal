@@ -24,21 +24,26 @@ export async function refresh(tabId: number): Promise<void> {
   statusEl.className = ctx.state.toLowerCase();
   statusEl.textContent = `Status: ${ctx.state}`;
 
-  startBtn.disabled = ctx.state === "PENDING";
+  startBtn.disabled = ctx.state === "PENDING" || ctx.state === "ACTIVE";
 
   if (ctx.state === "ACTIVE") {
     const snRes = await sendToBackground({ type: "GET_SAFETY_NUMBER" });
     if (snRes.ok && snRes.type === "SAFETY_NUMBER") {
       safetyEl.textContent = `Safety number:\n${snRes.number}`;
       safetyEl.style.display = "block";
+      warningEl.style.display = "none";
+    } else if (!snRes.ok && snRes.error === "KEY_CHANGE_DETECTED") {
+      warningEl.style.display = "block";
+      safetyEl.style.display = "none";
+    } else {
+      // NO_SESSION or NO_PEER — hide both
+      safetyEl.style.display = "none";
+      warningEl.style.display = "none";
     }
   } else {
     safetyEl.style.display = "none";
+    warningEl.style.display = "none";
   }
-
-  // Key-change warning: stored in sessionStorage by the content script
-  const hasKeyChange = sessionStorage.getItem(`waxseal-key-change-${tabId}`) === "true";
-  warningEl.style.display = hasKeyChange ? "block" : "none";
 }
 
 export async function init(): Promise<void> {

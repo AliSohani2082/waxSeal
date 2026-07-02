@@ -77,6 +77,26 @@ describe("popup", () => {
       expect(startBtn.disabled).toBe(true);
     });
 
+    it("disables start button when state is ACTIVE", async () => {
+      mockSendMessage.mockResolvedValueOnce({
+        ok: true,
+        type: "CONTEXT",
+        peerKeyIdHex: "aabb",
+        state: "ACTIVE",
+      });
+      mockSendMessage.mockResolvedValueOnce({
+        ok: true,
+        type: "SAFETY_NUMBER",
+        number: "1234 5678 9012",
+      });
+
+      const { refresh } = await import("../src/popup.js");
+      await refresh(1);
+
+      const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+      expect(startBtn.disabled).toBe(true);
+    });
+
     it("shows safety number when state is ACTIVE", async () => {
       mockSendMessage.mockResolvedValueOnce({
         ok: true,
@@ -113,30 +133,38 @@ describe("popup", () => {
       expect(safetyEl.style.display).toBe("none");
     });
 
-    it("shows key-change warning when sessionStorage flag is set", async () => {
-      const tabId = 42;
-      sessionStorage.setItem(`waxseal-key-change-${tabId}`, "true");
-
+    it("shows key-change warning when GET_SAFETY_NUMBER returns KEY_CHANGE_DETECTED", async () => {
       mockSendMessage.mockResolvedValueOnce({
         ok: true,
         type: "CONTEXT",
-        peerKeyIdHex: null,
-        state: "IDLE",
+        peerKeyIdHex: "aabb",
+        state: "ACTIVE",
+      });
+      mockSendMessage.mockResolvedValueOnce({
+        ok: false,
+        error: "KEY_CHANGE_DETECTED",
       });
 
       const { refresh } = await import("../src/popup.js");
-      await refresh(tabId);
+      await refresh(1);
 
       const warningEl = document.getElementById("key-change-warning")!;
+      const safetyEl = document.getElementById("safety-number")!;
       expect(warningEl.style.display).toBe("block");
+      expect(safetyEl.style.display).toBe("none");
     });
 
-    it("hides key-change warning when sessionStorage flag is absent", async () => {
+    it("hides key-change warning when GET_SAFETY_NUMBER returns safety number successfully", async () => {
       mockSendMessage.mockResolvedValueOnce({
         ok: true,
         type: "CONTEXT",
-        peerKeyIdHex: null,
-        state: "IDLE",
+        peerKeyIdHex: "aabb",
+        state: "ACTIVE",
+      });
+      mockSendMessage.mockResolvedValueOnce({
+        ok: true,
+        type: "SAFETY_NUMBER",
+        number: "1234 5678 9012",
       });
 
       const { refresh } = await import("../src/popup.js");
