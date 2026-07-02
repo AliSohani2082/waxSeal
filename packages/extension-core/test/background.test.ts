@@ -80,25 +80,25 @@ describe("background handleMessage", () => {
     const injectedEnvelope = mockSendMessage.mock.calls.at(-1)?.[1].envelopeB64 as string;
     const initFields = decodeEnvelope(injectedEnvelope);
     const responder = new HandshakeResponder(peer);
-    const { responseFields } = await responder.handleInit(initFields);
+    const { responseFields, sessionKey: peerSessionKey, sessionKeyId: peerSessionKeyId } = await responder.handleInit(initFields);
     await handleMessage({ type: "DECRYPT", envelopeB64: encodeEnvelope(responseFields) }, tabId);
 
-    // Get peer key id from context
-    const ctx = await handleMessage({ type: "GET_CONTEXT" }, tabId);
-    expect(ctx.ok).toBe(true);
-    if (!ctx.ok) throw new Error();
-    if (ctx.type !== "CONTEXT") throw new Error();
-    const peerKeyIdHex = ctx.peerKeyIdHex!;
+    // Get the peer's sender key ID from the response envelope (responseFields.senderKeyId)
+    const peerSenderKeyId = responseFields.senderKeyId;
 
-    // Encrypt
-    const encRes = await handleMessage({ type: "ENCRYPT", plaintext: "secret message", peerKeyIdHex }, tabId);
-    expect(encRes.ok).toBe(true);
-    if (!encRes.ok) throw new Error();
-    if (encRes.type !== "ENCRYPTED") throw new Error();
+    // Have the peer encrypt a DATA message using the shared session key
+    const plaintext = "secret message";
+    const { iv, ciphertext } = await encryptMessage(peerSessionKey, utf8Encode(plaintext));
+    const peerEnvelope = encodeEnvelope({
+      senderKeyId: peerSenderKeyId,
+      sessionKeyId: peerSessionKeyId,
+      msgType: MsgType.DATA,
+      iv,
+      payload: ciphertext,
+    });
 
-    // Decrypt what we encrypted — same background session key on both ends
-    const decRes = await handleMessage({ type: "DECRYPT", envelopeB64: encRes.envelopeB64 }, tabId);
-    // We encrypted it, so background can decrypt with the same session key
+    // Background decrypts the peer's message
+    const decRes = await handleMessage({ type: "DECRYPT", envelopeB64: peerEnvelope }, tabId);
     expect(decRes.ok).toBe(true);
     if (!decRes.ok) throw new Error();
     if (decRes.type !== "DECRYPTED") throw new Error();

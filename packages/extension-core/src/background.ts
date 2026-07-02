@@ -230,26 +230,12 @@ export async function handleMessage(
     }
 
     if (fields.msgType === MsgType.DATA) {
-      // Primary lookup: by sender key ID (peer sent to us)
-      let rec: PeerRecord | null = await peerStore.get(incomingSenderKeyIdHex);
-      // Fallback: sender is ourselves (round-trip test) — look up by tab's current peer
-      if (!rec) {
-        const tabPeerKeyId = tabPeer.get(tabId);
-        if (tabPeerKeyId) {
-          rec = await peerStore.get(tabPeerKeyId);
-        }
-      }
+      const rec = await peerStore.get(incomingSenderKeyIdHex);
       if (!rec || !rec.sessionKey) return { ok: false, error: "NO_SESSION" };
-
       try {
         const plaintextBytes = await decryptMessage(rec.sessionKey, fields.iv, fields.payload);
         const plaintext = utf8Decode(plaintextBytes);
-        return {
-          ok: true,
-          type: "DECRYPTED",
-          plaintext,
-          peerKeyIdHex: incomingSenderKeyIdHex,
-        };
+        return { ok: true, type: "DECRYPTED", plaintext, peerKeyIdHex: incomingSenderKeyIdHex };
       } catch (err) {
         if (err instanceof DecryptError) return { ok: false, error: "DECRYPT_FAILED" };
         throw err;
