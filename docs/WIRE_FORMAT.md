@@ -21,9 +21,14 @@ envelope :=
 
 - `DATA`: `AES-GCM.encrypt(sessionKey, iv, utf8(plaintext))` — ciphertext
   includes the 16-byte GCM tag appended by SubtleCrypto.
-- `HANDSHAKE_INIT`: `nonce (16 bytes) || senderPublicKeyJwkBytes`
-- `HANDSHAKE_RESPONSE`: `echoedNonce (16 bytes) || RSA-OAEP(peerPubKey,
-  rawSessionKeyBytes) || responderPublicKeyJwkBytes`
+- `HANDSHAKE_INIT`: UTF-8 JSON `{ nonce: base64url(16 random bytes),
+  publicKeyJwk: <sender's exported public key JWK> }`. JSON is used here
+  (rather than raw concatenation) because the JWK is variable-length and
+  needs self-delimiting framing to parse back out.
+- `HANDSHAKE_RESPONSE`: UTF-8 JSON `{ echoedNonce: base64url(the 16-byte
+  nonce from the INIT), wrappedSessionKey: base64url(RSA-OAEP(peerPubKey,
+  rawSessionKeyBytes)), publicKeyJwk: <responder's exported public key
+  JWK> }`.
 - `SESSION_KEY_ROTATE`: `RSA-OAEP(peerPubKey, newRawSessionKeyBytes)`
 - `SESSION_KEY_ACK`: empty payload
 
