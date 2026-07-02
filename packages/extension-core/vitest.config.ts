@@ -13,7 +13,7 @@ export default defineConfig({
       {
         test: {
           name: "dom",
-          include: ["test/content-script.test.ts"],
+          include: ["test/content-script.test.ts", "test/popup.test.ts"],
           environment: "jsdom",
         },
       },
