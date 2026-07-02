@@ -111,4 +111,31 @@ describe("content-script", () => {
     expect(mockSendMessage).not.toHaveBeenCalled();
     expect(bubble.textContent).toBe("plain text message");
   });
+
+  it("leaves message as-is on KEY_CHANGE_DETECTED", async () => {
+    mockSendMessage.mockResolvedValueOnce({ ok: false, error: "KEY_CHANGE_DETECTED" });
+    const messages = document.querySelector("#messages")!;
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = `${MARKER}somebase64`;
+    messages.appendChild(bubble);
+
+    await new Promise((r) => setTimeout(r, 10));
+
+    // text must remain unchanged
+    expect(bubble.textContent).toBe(`${MARKER}somebase64`);
+  });
+
+  it("leaves message as-is on DECRYPT_FAILED", async () => {
+    mockSendMessage.mockResolvedValueOnce({ ok: false, error: "DECRYPT_FAILED" });
+    const messages = document.querySelector("#messages")!;
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = `${MARKER}somebase64`;
+    messages.appendChild(bubble);
+
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(bubble.textContent).toBe(`${MARKER}somebase64`);
+  });
 });

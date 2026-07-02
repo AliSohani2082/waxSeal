@@ -99,7 +99,10 @@ async function processIncomingNode(adapter: SiteAdapter, node: Element): Promise
   const res = await sendToBackground({ type: "DECRYPT", envelopeB64: token });
   if (res && res.ok && res.type === "DECRYPTED") {
     adapter.replaceMessageText(node, res.plaintext);
+  } else if (res && !res.ok && res.error === "KEY_CHANGE_DETECTED") {
+    // KEY_CHANGE_DETECTED: leave message as encrypted — popup will show warning
   }
+  // DECRYPT_FAILED / NO_SESSION / NO_PEER: leave message as-is
 }
 
 function registerInjectListener(adapter: SiteAdapter): void {
