@@ -29,7 +29,7 @@ The backend can be closed-source at every phase. The transparency guarantee neve
 |---|---|---|
 | **1 — crypto-core** ✅ | Identity keys, handshake, envelope, session, fingerprints | — |
 | **2 — Browser extension** | Extension shell + Bale adapter (PoC / credibility signal) | Phase 1 |
-| **3 — Multi-device sync** | QR device linking + relay backend + storage layer upgrade | Phase 2 |
+| **3 — Multi-device sync** | OPAQUE accounts + encrypted bundle storage + QR ECDHE device linking + storage layer upgrade | Phase 2 |
 | **4 — Group chat + more adapters** | Sender Keys group protocol + Eitaa + Sorush+ adapters | Phase 3 |
 | **5 — Double Ratchet** | Per-message forward secrecy (upgrade path already in wire format) | Phase 2 |
 | **6 — Android** | Native crypto (Android Keystore), same wire format | Phase 3, 4 |
@@ -215,49 +215,96 @@ Selectors must be verified against Bale web's live DOM before merging. Prefer `a
 
 ## Phase 3: Multi-Device Key Sync
 
-### Zero-Knowledge QR Device Linking
+Full cryptographic specification in `docs/SYNC_DESIGN.md`. Summary below.
 
-The backend is a dumb encrypted blob relay. It never sees plaintext keys.
+### Goals
+
+A user installs waxseal on a second device (another browser, or a future
+Android/iOS client) and resumes their conversations seamlessly — same
+identity fingerprint, same active session keys — without the backend ever
+seeing a private key or a plaintext message.
+
+### Backend model (accounts + zero-knowledge encrypted storage)
+
+The backend has **user accounts** (it knows who you are and authenticates
+you), but it stores only an **encrypted blob it cannot open**. The
+zero-knowledge guarantee still holds: the backend knows account metadata
+(account exists, when devices log in) but is cryptographically incapable of
+reading the private key or any session key.
+
+Authentication uses **OPAQUE (RFC 9807)** — an augmented PAKE where the
+server never receives the password or its hash. OPAQUE produces a
+client-side `export_key` (64 bytes, never transmitted) that is used to
+derive the bundle encryption key via HKDF. Even if the server's credential
+database is leaked, offline dictionary attacks are infeasible.
+
+### Two sync paths (complementary, not exclusive)
+
+**Path A — OPAQUE account (persistent; any device, any time):**
+```
+Any device:
+  OPAQUE login → derive bundle_enc_key from export_key via HKDF
+  GET /sync/bundle → download encrypted blob
+  AES-256-GCM decrypt locally → import identity keypair + sessions
+```
+No password is ever transmitted. The backend stores the encrypted blob and
+the OPAQUE credential record — neither gives it access to the bundle.
+
+**Path B — QR ECDHE linking (ephemeral; requires primary device online):**
+```
+New device:
+  Generate ephemeral P-256 keypair (d_priv, d_pub)
+  Show QR: { d_pub_jwk, link_id }
+
+Primary device (scans QR):
+  Generate ephemeral P-256 keypair (e_priv, e_pub)
+  shared_secret = ECDH(e_priv, d_pub)
+  transfer_key  = HKDF(shared_secret, salt=link_id, info="waxseal-device-link-v1")
+  PUT /link/{link_id} ← { e_pub_jwk, iv, AES-256-GCM(transfer_key, bundle) }
+
+New device (polls):
+  shared_secret = ECDH(d_priv, e_pub)
+  transfer_key  = HKDF(shared_secret, salt=link_id, info="waxseal-device-link-v1")
+  bundle = decrypt → import
+  DELETE /link/{link_id}
+```
+No password required. The relay slot expires after 5 minutes or first read.
+Both ephemeral keys are discarded after the transfer — forward secrecy.
+
+### Backend API
 
 ```
-New device:                             Existing device:
-  Generate temp RSA-OAEP keypair          Scan QR code
-  (ephemeral, extractable)                Read tempPubKeyJwk + linkId
+── Account (OPAQUE) ───────────────────────────────────────────
+POST  /auth/register/start    OPAQUE registration round 1
+POST  /auth/register/finish   OPAQUE registration round 2
+POST  /auth/login/start       OPAQUE login round 1
+POST  /auth/login/finish      OPAQUE login round 2 → returns JWT
 
-  Show QR:                                Export identity keypair
-    { tempPubKeyJwk, linkId }             Collect all session keys
+── Persistent key bundle (Path A) ─────────────────────────────
+PUT   /sync/bundle            upload encrypted bundle (auth: JWT)
+GET   /sync/bundle            download encrypted bundle (auth: JWT)
 
-                                          Encrypt bundle:
-                                            RSA-OAEP(tempPubKey, {
-                                              identityPrivKeyJwk,
-                                              identityPubKeyJwk,
-                                              sessions: [...]
-                                            })
-
-                                          PUT /sync/{linkId}   ← encrypted blob
-                                            (TTL: 5 minutes)
-
-  Poll GET /sync/{linkId}
-  Decrypt with temp private key
-  Import identity keypair
-  Import session keys
-
-  DELETE /sync/{linkId}
+── Ephemeral device link (Path B) ─────────────────────────────
+PUT   /link/{link_id}         store sealed payload (TTL 5min, no auth)
+GET   /link/{link_id}         retrieve payload (one-time read, auto-deletes)
+DELETE /link/{link_id}        explicit cleanup
 ```
 
-Both devices now share the same identity. Same fingerprint. Same sessions. Contacts do not need to re-verify.
+The backend can be closed-source. `docs/SYNC_DESIGN.md` fully specifies
+what each endpoint must and must not do; a user can verify the open-source
+client never transmits plaintext without reading a single line of server code.
 
-### Backend Relay API
+### crypto-core additions
 
-Three endpoints. No auth. No user accounts. No content logging. Rate-limited by IP.
-
-```
-PUT    /sync/{linkId}    store encrypted blob (TTL 5min, max 64KB)
-GET    /sync/{linkId}    retrieve blob (auto-deletes after read)
-DELETE /sync/{linkId}    explicit cleanup
-```
-
-The relay can be closed-source. The protocol spec (this document + `CRYPTO_DESIGN.md`) fully describes what the relay must and must not do. A user can verify server behavior by reading the open-source client and confirming the client never transmits plaintext.
+- `packages/crypto-core/src/keys.ts` — `generateIdentityKeyPair({ extractable })`,
+  `exportIdentityKeyPair()`, `importIdentityKeyPair()`
+- `packages/crypto-core/src/sync.ts` — `KeyBundle` type, `serialiseBundle`,
+  `encryptBundle`, `decryptBundle`, `generateLinkingKeypair`,
+  `sealBundleForDevice`, `unsealBundle`, `deriveBundleKey`
+- `packages/sync-auth/` — new package wrapping `@serenity-kit/opaque-p256`
+  (WASM, RFC 9807); kept separate to avoid WASM dependency in crypto-core
+- `packages/extension-core/src/storage.ts` — add `ExtractableKeyStore`
+  implementing the existing `KeyStore` interface (Option C seam from Phase 2)
 
 ---
 
@@ -322,7 +369,7 @@ The wire format is the open standard. Android and iOS implementations must pass 
 | Phase | What is made public |
 |---|---|
 | 2 | Open-source repo + reproducible Chrome/Firefox build + `CRYPTO_DESIGN.md` |
-| 3 | Sync protocol spec added to `CRYPTO_DESIGN.md` + relay API documented |
+| 3 | `SYNC_DESIGN.md` — full OPAQUE + ECDHE sync protocol spec + backend API documented |
 | 4 | Group chat protocol spec + adapter HTML fixtures public |
 | 5 | Double Ratchet upgrade spec |
 | 6 | Kotlin implementation auditable against TypeScript spec + `TEST_VECTORS.json` |
