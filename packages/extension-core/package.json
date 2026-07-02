@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@waxseal/adapter-api": "workspace:*",
+    "@waxseal/adapter-bale": "workspace:*",
     "@waxseal/crypto-core": "workspace:*"
   },
   "devDependencies": {
