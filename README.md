@@ -6,10 +6,12 @@ extension; outgoing text is intercepted and encrypted before it reaches the
 site's own send handler, flows through the site as an opaque blob, and is
 decrypted and swapped back into the DOM on the receiving end.
 
-Status: **proof of concept**. Crypto core + a generic (site-agnostic) adapter,
-provable end-to-end against a local test page. Real site adapters (starting
-with Bale, Eitaa, and Soroush Plus) are a planned follow-up — see
-`docs/ADAPTER_GUIDE.md`.
+Status: **early proof of concept, pre-alpha**. `packages/crypto-core`
+(identity keys, handshake, envelope encoding, session encryption) is
+implemented and tested. The site-agnostic adapter, the browser extension
+shell (background/content-script/popup), the build tooling, and the
+end-to-end proof against a local test page are not built yet — see
+`docs/ADAPTER_GUIDE.md` for the adapter interface these will implement.
 
 - `docs/CRYPTO_DESIGN.md` — full cryptographic design (read this first).
 - `docs/WIRE_FORMAT.md` — terse wire-format reference.
