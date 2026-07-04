@@ -6,27 +6,60 @@ extension; outgoing text is intercepted and encrypted before it reaches the
 site's own send handler, flows through the site as an opaque blob, and is
 decrypted and swapped back into the DOM on the receiving end.
 
-Status: **early proof of concept, pre-alpha**. `packages/crypto-core`
-(identity keys, handshake, envelope encoding, session encryption) is
-implemented and tested. The site-agnostic adapter, the browser extension
-shell (background/content-script/popup), the build tooling, and the
-end-to-end proof against a local test page are not built yet — see
-`docs/ADAPTER_GUIDE.md` for the adapter interface these will implement.
+Status: **early proof of concept, pre-alpha**.
+
+## Repository Structure
+
+This is a Bun + TurboRepo monorepo.
+
+```
+apps/
+  extension/    # WXT + React browser extension (Chrome/Firefox)
+  fumadocs/     # Documentation site (Next.js + Fumadocs)
+packages/
+  config/       # Shared TypeScript config (@waxseal/config)
+  crypto-core/  # Identity keys, handshake, envelope encoding, session encryption
+docs/
+  CRYPTO_DESIGN.md   # Cryptographic design (read this first)
+  WIRE_FORMAT.md     # Terse wire-format reference
+  ADAPTER_GUIDE.md   # How to add support for a new site
+  SYNC_DESIGN.md     # Multi-device sync design
+```
+
+## Development
+
+```sh
+bun install
+
+# Run all dev servers (extension + docs)
+bun run dev
+
+# Run all tests
+bun run test
+
+# Type-check all packages
+bun run check-types
+
+# Build everything
+bun run build
+
+# Extension only
+cd apps/extension
+bun run build          # Chrome (Manifest V3)
+bun run build:firefox  # Firefox
+bun run dev            # Dev mode with HMR
+
+# Docs only
+cd apps/fumadocs
+bun run dev            # localhost:4000
+```
+
+## Cryptography
 
 - `docs/CRYPTO_DESIGN.md` — full cryptographic design (read this first).
 - `docs/WIRE_FORMAT.md` — terse wire-format reference.
 - `docs/ADAPTER_GUIDE.md` — how to add support for a new site.
 - `SECURITY.md` — threat model and vulnerability reporting.
-
-## Development
-
-```sh
-pnpm install
-pnpm test          # crypto-core + extension-core unit tests
-pnpm build:chrome   # -> dist/chrome, load unpacked via chrome://extensions
-pnpm build:firefox  # -> dist/firefox, load via about:debugging
-pnpm e2e            # Playwright, drives the local fixture page
-```
 
 ## License
 
