@@ -1,7 +1,62 @@
-node_modules/
-dist/
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+dev-dist
+.output
 *.tsbuildinfo
-.DS_Store
-coverage/
-*.log
+
+# WXT generated
+.wxt
+
+# Old chrome build outputs
+chrome/
+
+# Turbo
+.turbo
+
+# Next.js
+.next
+.source
+
+# Environment variables
 .env
+.env*.local
+
+# IDEs and editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tgz
+.cache
+tmp
+temp
+
+# Superpowers
+.superpowers/
