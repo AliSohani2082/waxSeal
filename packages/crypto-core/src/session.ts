@@ -7,18 +7,26 @@ const IV_LENGTH_BYTES = 12;
  * Crypto's wrapKey operation throws on a non-extractable key.
  */
 export async function generateSessionKey(): Promise<CryptoKey> {
-  return crypto.subtle.generateKey(AES_GCM_PARAMS, true, ["encrypt", "decrypt"]);
+	return crypto.subtle.generateKey(AES_GCM_PARAMS, true, [
+		"encrypt",
+		"decrypt",
+	]);
 }
 
 /** RSA-OAEP-wraps a session key's raw bytes under the peer's public key. */
 export async function wrapSessionKey(
-  sessionKey: CryptoKey,
-  peerPublicKey: CryptoKey,
+	sessionKey: CryptoKey,
+	peerPublicKey: CryptoKey,
 ): Promise<Uint8Array> {
-  const wrapped = await crypto.subtle.wrapKey("raw", sessionKey, peerPublicKey, {
-    name: "RSA-OAEP",
-  });
-  return new Uint8Array(wrapped);
+	const wrapped = await crypto.subtle.wrapKey(
+		"raw",
+		sessionKey,
+		peerPublicKey,
+		{
+			name: "RSA-OAEP",
+		},
+	);
+	return new Uint8Array(wrapped);
 }
 
 /**
@@ -27,24 +35,24 @@ export async function wrapSessionKey(
  * to re-export it — it's used directly for AES-GCM encrypt/decrypt.
  */
 export async function unwrapSessionKey(
-  wrapped: Uint8Array,
-  myPrivateKey: CryptoKey,
-  extractable = false,
+	wrapped: Uint8Array,
+	myPrivateKey: CryptoKey,
+	extractable = false,
 ): Promise<CryptoKey> {
-  return crypto.subtle.unwrapKey(
-    "raw",
-    wrapped,
-    myPrivateKey,
-    { name: "RSA-OAEP" },
-    AES_GCM_PARAMS,
-    extractable,
-    ["encrypt", "decrypt"],
-  );
+	return crypto.subtle.unwrapKey(
+		"raw",
+		wrapped,
+		myPrivateKey,
+		{ name: "RSA-OAEP" },
+		AES_GCM_PARAMS,
+		extractable,
+		["encrypt", "decrypt"],
+	);
 }
 
 export interface EncryptedMessage {
-  iv: Uint8Array;
-  ciphertext: Uint8Array;
+	iv: Uint8Array;
+	ciphertext: Uint8Array;
 }
 
 /**
@@ -56,19 +64,23 @@ export interface EncryptedMessage {
  * size AES-GCM is designed around.
  */
 export async function encryptMessage(
-  sessionKey: CryptoKey,
-  plaintext: Uint8Array,
+	sessionKey: CryptoKey,
+	plaintext: Uint8Array,
 ): Promise<EncryptedMessage> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, sessionKey, plaintext);
-  return { iv, ciphertext: new Uint8Array(ciphertext) };
+	const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
+	const ciphertext = await crypto.subtle.encrypt(
+		{ name: "AES-GCM", iv },
+		sessionKey,
+		plaintext,
+	);
+	return { iv, ciphertext: new Uint8Array(ciphertext) };
 }
 
 export class DecryptError extends Error {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = "DecryptError";
-  }
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
+		this.name = "DecryptError";
+	}
 }
 
 /**
@@ -78,14 +90,18 @@ export class DecryptError extends Error {
  * oracle to probe which failure mode occurred.
  */
 export async function decryptMessage(
-  sessionKey: CryptoKey,
-  iv: Uint8Array,
-  ciphertext: Uint8Array,
+	sessionKey: CryptoKey,
+	iv: Uint8Array,
+	ciphertext: Uint8Array,
 ): Promise<Uint8Array> {
-  try {
-    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, sessionKey, ciphertext);
-    return new Uint8Array(plaintext);
-  } catch (err) {
-    throw new DecryptError("could not decrypt message", { cause: err });
-  }
+	try {
+		const plaintext = await crypto.subtle.decrypt(
+			{ name: "AES-GCM", iv },
+			sessionKey,
+			ciphertext,
+		);
+		return new Uint8Array(plaintext);
+	} catch (err) {
+		throw new DecryptError("could not decrypt message", { cause: err });
+	}
 }

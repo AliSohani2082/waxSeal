@@ -1,8 +1,8 @@
 {
-  "extends": "@waxseal/config/tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2022", "WebWorker"],
-    "outDir": "dist"
-  },
-  "include": ["src", "test"]
+	"extends": "@waxseal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2022", "WebWorker"],
+		"outDir": "dist"
+	},
+	"include": ["src", "test"]
 }

@@ -1,5 +1,8 @@
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
-  modules: ["@wxt-dev/module-react"],
+	vite: () => ({
+		plugins: [react()],
+	}),
 });

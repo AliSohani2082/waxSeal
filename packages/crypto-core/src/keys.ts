@@ -7,15 +7,15 @@
  */
 
 export const RSA_OAEP_PARAMS = {
-  name: "RSA-OAEP",
-  modulusLength: 3072,
-  publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-  hash: "SHA-256",
+	name: "RSA-OAEP",
+	modulusLength: 3072,
+	publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+	hash: "SHA-256",
 } as const;
 
 export interface IdentityKeyPair {
-  publicKey: CryptoKey;
-  privateKey: CryptoKey;
+	publicKey: CryptoKey;
+	privateKey: CryptoKey;
 }
 
 /**
@@ -32,33 +32,48 @@ export interface IdentityKeyPair {
 // (see session.ts), never to encrypt arbitrary data directly, so they are
 // generated with the narrower wrapKey/unwrapKey usages rather than
 // encrypt/decrypt.
-export async function generateIdentityKeyPair(extractable = true): Promise<IdentityKeyPair> {
-  const keyPair = (await crypto.subtle.generateKey(RSA_OAEP_PARAMS, extractable, [
-    "wrapKey",
-    "unwrapKey",
-  ])) as CryptoKeyPair;
-  return { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
+export async function generateIdentityKeyPair(
+	extractable = true,
+): Promise<IdentityKeyPair> {
+	const keyPair = (await crypto.subtle.generateKey(
+		RSA_OAEP_PARAMS,
+		extractable,
+		["wrapKey", "unwrapKey"],
+	)) as CryptoKeyPair;
+	return { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
 }
 
-export async function exportPublicKeyJwk(publicKey: CryptoKey): Promise<JsonWebKey> {
-  return crypto.subtle.exportKey("jwk", publicKey);
+export async function exportPublicKeyJwk(
+	publicKey: CryptoKey,
+): Promise<JsonWebKey> {
+	return crypto.subtle.exportKey("jwk", publicKey);
 }
 
 export async function importPublicKeyJwk(jwk: JsonWebKey): Promise<CryptoKey> {
-  return crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: "SHA-256" }, true, [
-    "wrapKey",
-  ]);
+	return crypto.subtle.importKey(
+		"jwk",
+		jwk,
+		{ name: "RSA-OAEP", hash: "SHA-256" },
+		true,
+		["wrapKey"],
+	);
 }
 
-export async function exportPrivateKeyJwk(privateKey: CryptoKey): Promise<JsonWebKey> {
-  return crypto.subtle.exportKey("jwk", privateKey);
+export async function exportPrivateKeyJwk(
+	privateKey: CryptoKey,
+): Promise<JsonWebKey> {
+	return crypto.subtle.exportKey("jwk", privateKey);
 }
 
 export async function importPrivateKeyJwk(
-  jwk: JsonWebKey,
-  extractable = false,
+	jwk: JsonWebKey,
+	extractable = false,
 ): Promise<CryptoKey> {
-  return crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: "SHA-256" }, extractable, [
-    "unwrapKey",
-  ]);
+	return crypto.subtle.importKey(
+		"jwk",
+		jwk,
+		{ name: "RSA-OAEP", hash: "SHA-256" },
+		extractable,
+		["unwrapKey"],
+	);
 }

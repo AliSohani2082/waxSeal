@@ -1,35 +1,35 @@
 {
-  "name": "waxseal",
-  "private": true,
-  "version": "0.0.0",
-  "description": "End-to-end encryption overlay for web chat apps that don't support it natively.",
-  "license": "MIT",
-  "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "check-types": "turbo run check-types",
-    "test": "turbo run test",
-    "check": "biome check --write .",
-    "prepare": "husky"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
-    "@types/node": "^22.13.14",
-    "@waxseal/config": "workspace:*",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "turbo": "^2.10.2",
-    "typescript": "^6"
-  },
-  "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --write ."
-    ]
-  },
-  "packageManager": "bun@1.2.20"
+	"name": "waxseal",
+	"private": true,
+	"version": "0.0.0",
+	"description": "End-to-end encryption overlay for web chat apps that don't support it natively.",
+	"license": "MIT",
+	"type": "module",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"check-types": "turbo run check-types",
+		"test": "turbo run test",
+		"check": "biome check --write .",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.2",
+		"@types/node": "^22.13.14",
+		"@waxseal/config": "workspace:*",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.7",
+		"turbo": "^2.10.2",
+		"typescript": "^6"
+	},
+	"lint-staged": {
+		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+			"biome check --write ."
+		]
+	},
+	"packageManager": "bun@1.2.20"
 }
