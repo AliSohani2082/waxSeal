@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@waxseal/config/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "WebWorker"],
     "outDir": "dist"
