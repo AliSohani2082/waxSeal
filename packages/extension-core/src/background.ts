@@ -40,8 +40,18 @@ let myFingerprint: Uint8Array | null = null;
 // Per-tab active peer: tabId → senderKeyIdHex of the current session peer
 const tabPeer = new Map<number, string>();
 
-async function ensureIdentity(): Promise<void> {
-  if (myKeyPair) return;
+// Memoized so concurrent messages (a service worker processes them on one
+// event loop but with interleaved awaits) cannot each generate and persist a
+// separate identity — that race produced a transient "ghost" key that the
+// handshake responder would advertise instead of the persisted identity.
+let identityPromise: Promise<void> | null = null;
+
+function ensureIdentity(): Promise<void> {
+  if (!identityPromise) identityPromise = initIdentity();
+  return identityPromise;
+}
+
+async function initIdentity(): Promise<void> {
   let loaded = await keyStore.loadIdentityKey();
   if (!loaded) {
     const raw = await generateIdentityKeyPair(true);
@@ -266,3 +276,13 @@ if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
     },
   );
 }
+
+// Test-only hook: expose handleMessage in the service-worker global scope so
+// Playwright E2E tests can drive the background directly. A page's main world
+// cannot message a content-script extension via chrome.runtime.sendMessage
+// (Chrome requires an extension id and routes to onMessageExternal), so the
+// tests reach the background through the service-worker context instead. This
+// does not widen the extension's attack surface — the SW global is reachable
+// only via the DevTools/automation protocol, never from web content.
+(globalThis as unknown as { __waxsealHandleMessage?: typeof handleMessage }).
+  __waxsealHandleMessage = handleMessage;

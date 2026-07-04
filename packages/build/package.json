@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "pnpm build:chrome && pnpm build:firefox",
-    "build:chrome": "vite build --config vite.config.ts --mode chrome",
-    "build:firefox": "vite build --config vite.config.ts --mode firefox",
+    "build:chrome": "vite build --config vite.config.ts --mode chrome && WAXSEAL_TARGET=content vite build --config vite.config.ts --mode chrome",
+    "build:firefox": "vite build --config vite.config.ts --mode firefox && WAXSEAL_TARGET=content vite build --config vite.config.ts --mode firefox",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

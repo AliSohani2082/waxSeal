@@ -52,30 +52,56 @@ export default defineConfig(({ mode }): UserConfig => {
   // regardless of what `root` is set to.
   const outDir = resolve(__dirname, `dist/${mode === "firefox" ? "firefox" : "chrome"}`);
 
+  // The build runs in two passes into the same outDir:
+  //   - default pass: background (module) + popup, code-splitting allowed
+  //   - content pass (WAXSEAL_TARGET=content): content-script only, bundled as a
+  //     self-contained IIFE. MV3 injects content scripts as CLASSIC scripts, which
+  //     cannot use `import`, so the content script must have no external chunks.
+  const isContentPass = process.env["WAXSEAL_TARGET"] === "content";
+
+  const build: UserConfig["build"] = isContentPass
+    ? {
+        target: "es2022",
+        modulePreload: { polyfill: false },
+        outDir,
+        emptyOutDir: false, // preserve background.js / popup from the first pass
+        rollupOptions: {
+          input: resolve(extensionCoreDir, "content-script.ts"),
+          output: {
+            format: "iife",
+            inlineDynamicImports: true,
+            entryFileNames: "content-script.js",
+            assetFileNames: "[name][extname]",
+          },
+        },
+        sourcemap: true,
+        minify: false, // keep readable for auditing
+      }
+    : {
+        target: "es2022",
+        modulePreload: { polyfill: false },
+        outDir,
+        emptyOutDir: true,
+        rollupOptions: {
+          input: {
+            background: resolve(extensionCoreDir, "background.ts"),
+            popup: resolve(extensionCoreDir, "popup.html"),
+          },
+          output: {
+            entryFileNames: "[name].js",
+            chunkFileNames: "chunks/[name]-[hash].js",
+            assetFileNames: "[name][extname]",
+          },
+        },
+        sourcemap: true,
+        minify: false, // keep readable for auditing
+      };
+
   return {
     // root = extensionCoreDir ensures popup.html is within root so Vite
     // can assign it a proper relative filename in the output bundle.
     root: extensionCoreDir,
-    build: {
-      target: "es2022",
-      modulePreload: { polyfill: false },
-      outDir,
-      emptyOutDir: true,
-      rollupOptions: {
-        input: {
-          background: resolve(extensionCoreDir, "background.ts"),
-          "content-script": resolve(extensionCoreDir, "content-script.ts"),
-          popup: resolve(extensionCoreDir, "popup.html"),
-        },
-        output: {
-          entryFileNames: "[name].js",
-          chunkFileNames: "chunks/[name]-[hash].js",
-          assetFileNames: "[name][extname]",
-        },
-      },
-      sourcemap: true,
-      minify: false, // keep readable for auditing
-    },
+    build,
     resolve: {
       alias: {
         "@waxseal/crypto-core": resolve(__dirname, "../crypto-core/src/index.ts"),
