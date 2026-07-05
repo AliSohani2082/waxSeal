@@ -18,6 +18,7 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/crypto-core/package.json ./packages/crypto-core/
 COPY packages/extension-core/package.json ./packages/extension-core/
 COPY e2e/package.json ./e2e/
+# root vite@^8 pins WXT's transitive vite to >=8; Vite 5 breaks WXT's load filter API in Docker
 RUN bun install --frozen-lockfile --ignore-scripts
 
 # ── Stage 3: builder ───────────────────────────────────────────────────────────
