@@ -21,7 +21,9 @@
 			"!**/.vscode",
 			"!**/routeTree.gen.ts",
 			"!**/.source",
-			"!**/bts.jsonc"
+			"!**/bts.jsonc",
+			"!**/test/fixtures",
+			"!**/test/fixture-page"
 		]
 	},
 	"formatter": {

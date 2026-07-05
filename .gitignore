@@ -51,6 +51,7 @@ pnpm-debug.log*
 # Testing
 coverage
 .nyc_output
+e2e/test-results/
 
 # Misc
 *.tgz

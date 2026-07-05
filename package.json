@@ -7,13 +7,16 @@
 	"type": "module",
 	"workspaces": [
 		"apps/*",
-		"packages/*"
+		"packages/*",
+		"packages/adapters/*",
+		"e2e"
 	],
 	"scripts": {
 		"dev": "turbo run dev",
 		"build": "turbo run build",
 		"check-types": "turbo run check-types",
 		"test": "turbo run test",
+		"e2e": "bun --filter @waxseal/e2e run test",
 		"check": "biome check --write .",
 		"prepare": "husky"
 	},

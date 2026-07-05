@@ -1,0 +1,29 @@
+{
+	"manifest_version": 3,
+	"name": "waxseal",
+	"version": "0.1.0",
+	"description": "End-to-end encryption overlay for Bale web chat.",
+	"background": {
+		"scripts": ["background.js"],
+		"type": "module"
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://web.bale.ai/*"],
+			"js": ["content-script.js"],
+			"run_at": "document_idle"
+		}
+	],
+	"action": {
+		"default_popup": "popup.html",
+		"default_title": "waxseal"
+	},
+	"permissions": ["storage", "tabs"],
+	"host_permissions": ["https://web.bale.ai/*"],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "waxseal@waxseal.app",
+			"strict_min_version": "121.0"
+		}
+	}
+}

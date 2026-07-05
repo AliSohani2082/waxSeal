@@ -105,7 +105,7 @@ describe("decodeEnvelope failure modes", () => {
 	});
 
 	it("rejects invalid base64url after the marker", () => {
-		expect(() => decodeEnvelope(MARKER + "not valid!")).toThrow(
+		expect(() => decodeEnvelope(`${MARKER}not valid!`)).toThrow(
 			EnvelopeDecodeError,
 		);
 	});

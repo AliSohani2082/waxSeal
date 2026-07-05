@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>waxseal E2E Fixture</title>
+  <style>
+    body { font-family: system-ui; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    #message-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .bubble {
+      display: inline-block; background: #e8f4fd; border-radius: 12px;
+      padding: 8px 12px; max-width: 70%; word-break: break-all;
+    }
+    .bubble.mine { align-self: flex-end; background: #dcf8c6; }
+    #composer-area { border-top: 1px solid #ddd; padding: 12px; display: flex; gap: 8px; }
+    [aria-label="پیام"] {
+      flex: 1; border: 1px solid #ccc; border-radius: 20px; padding: 8px 14px;
+      outline: none; min-height: 36px;
+    }
+    button { border-radius: 50%; width: 40px; height: 40px; border: none; background: #0d8; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="message-list" data-testid="message-list"></div>
+  <div id="composer-area">
+    <div
+      contenteditable="true"
+      aria-label="پیام"
+      data-testid="message-input"
+      role="textbox"
+    ></div>
+    <button id="send-btn" data-testid="send-button">↑</button>
+  </div>
+  <script>
+    const list = document.getElementById('message-list');
+    const composer = document.querySelector('[aria-label="پیام"]');
+    const sendBtn = document.getElementById('send-btn');
+
+    function addMessage(text, mine = false) {
+      const el = document.createElement('div');
+      el.setAttribute('data-testid', 'message-bubble');
+      el.className = `bubble${mine ? ' mine' : ''}`;
+      el.textContent = text;
+      list.appendChild(el);
+      list.scrollTop = list.scrollHeight;
+      return el;
+    }
+
+    function send() {
+      const text = composer.textContent.trim();
+      if (!text) return;
+      addMessage(text, true);
+      composer.textContent = '';
+    }
+
+    sendBtn.addEventListener('click', send);
+    composer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+
+    // Expose helpers for E2E tests
+    window.addIncomingMessage = (text) => addMessage(text, false);
+    window.getMessages = () =>
+      Array.from(list.querySelectorAll('[data-testid="message-bubble"]'))
+        .map(el => el.textContent);
+  </script>
+</body>
+</html>
