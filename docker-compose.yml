@@ -1,0 +1,18 @@
+services:
+  docs:
+    build:
+      context: .
+      dockerfile: apps/fumadocs/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+
+  extension-builder:
+    build:
+      context: .
+      dockerfile: apps/extension/Dockerfile
+    volumes:
+      - ./dist:/out
+    profiles:
+      - tools
