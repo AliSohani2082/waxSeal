@@ -10,7 +10,6 @@
 		"includes": [
 			"**",
 			"!chrome",
-			"!my-better-t-app",
 			"!.claude",
 			"!**/.next",
 			"!**/dist",
