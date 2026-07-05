@@ -27,7 +27,8 @@
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.7",
 		"turbo": "^2.10.2",
-		"typescript": "^6"
+		"typescript": "^6",
+		"vite": "^8.0.0"
 	},
 	"lint-staged": {
 		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [

@@ -15,4 +15,5 @@ dev-dist
 chrome
 .git
 e2e
+!e2e/package.json
 *.tsbuildinfo
