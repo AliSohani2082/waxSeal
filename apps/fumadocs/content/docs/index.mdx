@@ -1,13 +1,27 @@
 ---
-title: Hello World
-description: Your first document
+title: Waxseal
+description: End-to-end encrypted messaging overlay for browser-based chat platforms
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+Waxseal is a browser extension that adds end-to-end encryption to any web-based chat platform — without requiring the platform's cooperation. It intercepts outgoing messages, encrypts them under the recipient's public key, and decrypts incoming ciphertext transparently, so the host platform only ever sees opaque blobs.
 
-## What is Next?
+## How it works
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+1. **Key generation** — on first run, Waxseal generates an RSA-OAEP identity keypair per device and stores the private key non-extractably in IndexedDB. The public key is shared with contacts in-band.
+2. **Handshake** — when two Waxseal users are in the same chat thread, the extension performs a TOFU (trust on first use) key exchange. Each side ends up with a shared AES-256-GCM session key.
+3. **Encrypt/decrypt** — outgoing text is AES-GCM encrypted and embedded in the chat field as a base64url-encoded envelope prefixed with `⁉WAXSEAL1:`. The extension on the other side detects the marker, decrypts, and renders plaintext inline.
+4. **Verification** — the popup shows a combined "safety number" (both parties' key fingerprints) for out-of-band comparison, following the same approach as Signal.
+
+## Security posture
+
+Waxseal provides **content confidentiality** and **message authentication** against a passive or active-but-limited adversary. It does not protect metadata (who talks to whom), and it relies on TOFU for the initial key exchange — a determined MITM during the first handshake is not automatically blocked, only detectable via safety number comparison.
+
+See the [Cryptography design](/docs/crypto/design) for the full threat model.
+
+## Project structure
+
+| Package / App | Purpose |
+|---|---|
+| `packages/crypto-core` | Web Crypto API primitives: key generation, session key wrap/unwrap, AES-GCM encrypt/decrypt, fingerprints |
+| `apps/extension` | WXT browser extension (content script, popup, background service worker) |
+| `apps/fumadocs` | This documentation site |

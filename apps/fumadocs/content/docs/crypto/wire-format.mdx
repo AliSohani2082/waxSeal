@@ -1,0 +1,43 @@
+---
+title: Wire Format
+description: Terse implementation-facing reference for the Waxseal envelope format. See Cryptography Design for full rationale.
+---
+
+See [Cryptography Design](/docs/crypto/design) for full rationale. This page is the terse,
+implementation-facing reference.
+
+```
+token := MARKER || base64url_nopad(envelope)
+MARKER := "⁉WAXSEAL1:"
+
+envelope :=
+    version:      u8
+    senderKeyId:  8 bytes
+    sessionKeyId: 8 bytes           (all-zero if msgType is a handshake type)
+    msgType:      u8                (0=DATA 1=HANDSHAKE_INIT 2=HANDSHAKE_RESPONSE
+                                      3=SESSION_KEY_ROTATE 4=SESSION_KEY_ACK)
+    iv:           12 bytes          (fresh CSPRNG per encryption, never reused per key)
+    payload:      remaining bytes
+```
+
+`payload` contents depend on `msgType`:
+
+- `DATA`: `AES-GCM.encrypt(sessionKey, iv, utf8(plaintext))` — ciphertext
+  includes the 16-byte GCM tag appended by SubtleCrypto.
+- `HANDSHAKE_INIT`: UTF-8 JSON `{ nonce: base64url(16 random bytes), publicKeyJwk: <sender's exported public key JWK> }`.
+  JSON is used here (rather than raw concatenation) because the JWK is variable-length and
+  needs self-delimiting framing to parse back out.
+- `HANDSHAKE_RESPONSE`: UTF-8 JSON `{ echoedNonce: base64url(the 16-byte nonce from the INIT), wrappedSessionKey: base64url(RSA-OAEP(peerPubKey, rawSessionKeyBytes)), publicKeyJwk: <responder's exported public key JWK> }`.
+- `SESSION_KEY_ROTATE`: `RSA-OAEP(peerPubKey, newRawSessionKeyBytes)`
+- `SESSION_KEY_ACK`: empty payload
+
+## Decoding rules
+
+1. Reject anything shorter than the fixed-field minimum (30 bytes before
+   payload) — fail closed with a typed error, never throw an unhandled
+   exception and never emit partial plaintext.
+2. Reject unknown `version` bytes explicitly rather than attempting to parse
+   under an assumed layout.
+3. AES-GCM tag verification failure must be treated identically to "could not
+   decrypt" — do not distinguish "wrong key" from "corrupted" in the UI, to
+   avoid leaking oracle information.
