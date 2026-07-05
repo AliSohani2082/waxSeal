@@ -41,7 +41,7 @@ export async function unwrapSessionKey(
 ): Promise<CryptoKey> {
 	return crypto.subtle.unwrapKey(
 		"raw",
-		wrapped,
+		wrapped as Uint8Array<ArrayBuffer>,
 		myPrivateKey,
 		{ name: "RSA-OAEP" },
 		AES_GCM_PARAMS,
@@ -71,7 +71,7 @@ export async function encryptMessage(
 	const ciphertext = await crypto.subtle.encrypt(
 		{ name: "AES-GCM", iv },
 		sessionKey,
-		plaintext,
+		plaintext as Uint8Array<ArrayBuffer>,
 	);
 	return { iv, ciphertext: new Uint8Array(ciphertext) };
 }
@@ -96,9 +96,9 @@ export async function decryptMessage(
 ): Promise<Uint8Array> {
 	try {
 		const plaintext = await crypto.subtle.decrypt(
-			{ name: "AES-GCM", iv },
+			{ name: "AES-GCM", iv: iv as Uint8Array<ArrayBuffer> },
 			sessionKey,
-			ciphertext,
+			ciphertext as Uint8Array<ArrayBuffer>,
 		);
 		return new Uint8Array(plaintext);
 	} catch (err) {

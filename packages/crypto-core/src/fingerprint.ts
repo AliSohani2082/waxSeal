@@ -19,7 +19,10 @@ export async function fingerprintPublicKey(
 	jwk: JsonWebKey,
 ): Promise<Uint8Array> {
 	const canonical = canonicalizeJwk(jwk);
-	const digest = await crypto.subtle.digest("SHA-256", canonical);
+	const digest = await crypto.subtle.digest(
+		"SHA-256",
+		canonical as Uint8Array<ArrayBuffer>,
+	);
 	return new Uint8Array(digest);
 }
 
