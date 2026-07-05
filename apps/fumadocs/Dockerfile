@@ -41,6 +41,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=4000
 ENV HOSTNAME=0.0.0.0
 COPY --from=builder /repo/apps/fumadocs/.next/standalone ./
-COPY --from=builder /repo/apps/fumadocs/.next/static ./.next/static
+COPY --from=builder /repo/apps/fumadocs/.next/static ./apps/fumadocs/.next/static
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+USER nextjs
 EXPOSE 4000
 CMD ["node", "apps/fumadocs/server.js"]
