@@ -1,8 +1,14 @@
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
-	vite: () => ({
-		plugins: [react()],
-	}),
+	manifest: {
+		name: "waxseal",
+		version: "0.1.0",
+		description: "End-to-end encryption overlay for Bale web chat.",
+		permissions: ["storage", "tabs"],
+		host_permissions: ["https://web.bale.ai/*"],
+		action: {
+			default_title: "waxseal",
+		},
+	},
 });

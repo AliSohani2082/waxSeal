@@ -47,7 +47,11 @@ function injectAndSend(
 	adapter.triggerSend(composer);
 }
 
+let started = false;
+
 export function startContentScript(adapter: SiteAdapter): void {
+	if (started) return;
+	started = true;
 	currentAdapter = adapter;
 	setupSendIntercept(adapter);
 	setupMutationObserver(adapter);

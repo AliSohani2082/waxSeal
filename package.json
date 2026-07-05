@@ -16,7 +16,7 @@
 		"build": "turbo run build",
 		"check-types": "turbo run check-types",
 		"test": "turbo run test",
-		"e2e": "bun --filter @waxseal/e2e run test",
+		"e2e": "turbo run e2e --filter=@waxseal/e2e",
 		"check": "biome check --write .",
 		"prepare": "husky"
 	},

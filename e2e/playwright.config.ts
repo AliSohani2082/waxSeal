@@ -3,7 +3,10 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "@playwright/test";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const extensionPath = resolve(__dirname, "../packages/build/dist/chrome");
+const extensionPath = resolve(
+	__dirname,
+	"../apps/extension/.output/chrome-mv3",
+);
 
 export default defineConfig({
 	testDir: "./tests",

@@ -15,13 +15,13 @@
 		"postinstall": "node ./node_modules/wxt/bin/wxt.mjs prepare"
 	},
 	"dependencies": {
-		"react": "^19.2.4",
-		"react-dom": "^19.2.4"
+		"@waxseal/adapter-api": "workspace:*",
+		"@waxseal/adapter-bale": "workspace:*",
+		"@waxseal/crypto-core": "workspace:*",
+		"@waxseal/extension-core": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/react": "^19.2.14",
-		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react": "^4.4.1",
+		"@types/chrome": "^0.0.277",
 		"typescript": "^5.9.3",
 		"wxt": "^0.20.27"
 	}

@@ -2,12 +2,66 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waxseal</title>
-    <meta name="manifest.type" content="browser_action" />
+    <title>waxseal</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        width: 280px;
+        padding: 16px;
+        margin: 0;
+        background: #fff;
+        color: #111;
+      }
+      h1 { font-size: 18px; margin: 0 0 12px; }
+      #status { font-size: 14px; margin-bottom: 12px; }
+      #status.idle { color: #888; }
+      #status.pending { color: #e69900; }
+      #status.active { color: #1a7f37; }
+      #safety-number {
+        font-family: monospace;
+        font-size: 11px;
+        background: #f4f4f5;
+        padding: 8px;
+        border-radius: 4px;
+        word-break: break-all;
+        margin-bottom: 12px;
+        display: none;
+      }
+      #key-change-warning {
+        background: #fef2f2;
+        border: 1px solid #f87171;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 13px;
+        color: #b91c1c;
+        margin-bottom: 12px;
+        display: none;
+      }
+      button {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover { background: #efefef; }
+      button:disabled { opacity: 0.4; cursor: default; }
+      #not-bale { font-size: 13px; color: #666; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="./main.tsx"></script>
+    <h1>🔐 waxseal</h1>
+    <div id="not-bale" style="display:none">Not on a Bale web chat page.</div>
+    <div id="main" style="display:none">
+      <div id="key-change-warning">
+        ⚠️ Identity key changed — re-verify safety number with your contact.
+      </div>
+      <div id="status" class="idle">Status: loading…</div>
+      <div id="safety-number"></div>
+      <button id="start-btn" type="button" disabled>Start secure chat</button>
+    </div>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

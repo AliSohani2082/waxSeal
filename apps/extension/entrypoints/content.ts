@@ -1,6 +1,9 @@
+import { baleAdapter } from "@waxseal/adapter-bale";
+import { startContentScript } from "@waxseal/extension-core/content-script";
+
 export default defineContentScript({
-	matches: ["<all_urls>"],
+	matches: ["https://web.bale.ai/*"],
 	main() {
-		console.log("Waxseal content script injected.");
+		startContentScript(baleAdapter);
 	},
 });

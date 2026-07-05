@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git rm *)",
       "Bash(biome check *)",
-      "Bash(bunx biome *)"
+      "Bash(bunx biome *)",
+      "Bash(bun --filter @waxseal/build run build:chrome)",
+      "Bash(bun --filter \"@waxseal/build\" run build:chrome)",
+      "Bash(DISPLAY=:0 bunx playwright test --reporter=list)"
     ]
   },
   "enabledPlugins": {

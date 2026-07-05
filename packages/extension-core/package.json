@@ -5,6 +5,11 @@
 	"type": "module",
 	"main": "./src/background.ts",
 	"types": "./src/background.ts",
+	"exports": {
+		".": "./src/background.ts",
+		"./content-script": "./src/content-script.ts",
+		"./popup": "./src/popup.ts"
+	},
 	"scripts": {
 		"test": "vitest run",
 		"check-types": "tsc --noEmit"
